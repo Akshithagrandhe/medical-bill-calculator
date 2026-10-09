@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-50 text-slate-900 antialiased">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Medical Bill Calculator</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    input[type=range] { accent-color: #0284c7; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col justify-between">
+
+  <!-- SIMPLE HEADER -->
+  <header class="bg-white border-b border-slate-200 py-4 shadow-sm">
+    <div class="max-w-6xl mx-auto px-4 flex items-center justify-between">
+      <div class="flex items-center space-x-2.5">
+        <div class="w-8 h-8 rounded-lg bg-sky-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">
+          +
+        </div>
+        <h1 class="text-lg font-bold text-slate-900">Medical Bill Calculator</h1>
+      </div>
+      <button onclick="resetDefaults()" class="text-xs font-semibold text-sky-600 hover:text-sky-800 transition">
+        ↺ Reset Defaults
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="max-w-6xl w-full mx-auto px-4 py-6 flex-grow grid grid-cols-1 lg:grid-cols-12 gap-8">
+    
+    <!-- LEFT COLUMN: INPUTS -->
+    <div class="lg:col-span-5 space-y-6">
+      
+      <!-- Presets -->
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-2">
+        <label class="text-xs font-bold text-slate-500 uppercase tracking-wider block">Quick Examples:</label>
+        <div class="flex flex-wrap gap-2">
+          <button onclick="loadPreset('standard')" class="px-3 py-1 bg-sky-50 text-sky-700 border border-sky-200 rounded-lg text-xs font-semibold hover:bg-sky-100 transition">
+            Specialist (₹1,000)
+          </button>
+          <button onclick="loadPreset('preventive')" class="px-3 py-1 bg-slate-100 text-slate-700 border border-slate-200 rounded-lg text-xs font-medium hover:bg-slate-200 transition">
+            Preventive (₹250)
+          </button>
+          <button onclick="loadPreset('er')" class="px-3 py-1 bg-slate-100 text-slate-700 border border-slate-200 rounded-lg text-xs font-medium hover:bg-slate-200 transition">
+            Emergency (₹3,500)
+          </button>
+          <button onclick="loadPreset('surgery')" class="px-3 py-1 bg-slate-100 text-slate-700 border border-slate-200 rounded-lg text-xs font-medium hover:bg-slate-200 transition">
+            Surgery (₹18,000)
+          </button>
+        </div>
+      </div>
+
+      <!-- Inputs Form -->
+      <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-5">
+        <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2">Enter Claim Amounts</h2>
+
+        <!-- Input 1 -->
+        <div class="space-y-1">
+          <div class="flex justify-between text-xs font-semibold text-slate-700">
+            <label for="billed">Billed Claim Amount (₹)</label>
+            <span class="text-sky-700 font-mono font-bold" id="lbl-billed">₹1,000.00</span>
+          </div>
+          <div class="relative">
+            <span class="absolute left-3 top-2 text-slate-400 font-semibold">₹</span>
+            <input type="number" id="billed" value="1000" min="0" oninput="calculate()" class="w-full bg-slate-50 border border-slate-300 rounded-lg pl-7 pr-3 py-2 text-sm font-semibold text-slate-900 focus:bg-white focus:border-sky-500 outline-none">
+          </div>
+        </div>
+
+        <!-- Input 2 -->
+        <div class="space-y-1">
+          <div class="flex justify-between text-xs font-semibold text-slate-700">
+            <label for="discount">Network Discount (%)</label>
+            <span class="text-emerald-700 font-mono font-bold" id="lbl-discount">20%</span>
+          </div>
+          <div class="relative">
+            <input type="number" id="discount" value="20" min="0" max="100" oninput="calculate()" class="w-full bg-slate-50 border border-slate-300 rounded-lg pl-3 pr-8 py-2 text-sm font-semibold text-slate-900 focus:bg-white focus:border-sky-500 outline-none">
+            <span class="absolute right-3 top-2 text-slate-400 font-semibold">%</span>
+          </div>
+        </div>
+
+        <!-- Input 3 -->
+        <div class="space-y-1">
+          <div class="flex justify-between text-xs font-semibold text-slate-700">
+            <label for="copay">Co-pay Amount (₹)</label>
+            <span class="text-slate-700 font-mono font-bold" id="lbl-copay">₹30.00</span>
+          </div>
+          <div class="relative">
+            <span class="absolute left-3 top-2 text-slate-400 font-semibold">₹</span>
+            <input type="number" id="copay" value="30" min="0" oninput="calculate()" class="w-full bg-slate-50 border border-slate-300 rounded-lg pl-7 pr-3 py-2 text-sm font-semibold text-slate-900 focus:bg-white focus:border-sky-500 outline-none">
+          </div>
+        </div>
+
+        <!-- Input 4 -->
+        <div class="space-y-1">
+          <div class="flex justify-between text-xs font-semibold text-slate-700">
+            <label for="deductible">Remaining Annual Deductible (₹)</label>
+            <span class="text-amber-700 font-mono font-bold" id="lbl-deductible">₹200.00</span>
+          </div>
+          <div class="relative">
+            <span class="absolute left-3 top-2 text-slate-400 font-semibold">₹</span>
+            <input type="number" id="deductible" value="200" min="0" oninput="calculate()" class="w-full bg-slate-50 border border-slate-300 rounded-lg pl-7 pr-3 py-2 text-sm font-semibold text-slate-900 focus:bg-white focus:border-sky-500 outline-none">
+          </div>
+        </div>
+
+        <!-- Input 5 -->
+        <div class="space-y-1">
+          <div class="flex justify-between text-xs font-semibold text-slate-700">
+            <label for="coinsurance">Co-insurance Rate (%)</label>
+            <span class="text-purple-700 font-mono font-bold" id="lbl-coinsurance">20%</span>
+          </div>
+          <div class="relative">
+            <input type="number" id="coinsurance" value="20" min="0" max="100" oninput="calculate()" class="w-full bg-slate-50 border border-slate-300 rounded-lg pl-3 pr-8 py-2 text-sm font-semibold text-slate-900 focus:bg-white focus:border-sky-500 outline-none">
+            <span class="absolute right-3 top-2 text-slate-400 font-semibold">%</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN: RESULTS -->
+    <div class="lg:col-span-7 space-y-6">
+      
+      <!-- Big 3 Key Numbers Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        
+        <!-- You Pay -->
+        <div class="bg-amber-50 rounded-xl p-5 border border-amber-200">
+          <span class="text-xs font-bold text-amber-800 uppercase tracking-wider">You Pay</span>
+          <div id="res-patient-total" class="text-3xl font-black text-amber-600 mt-1 font-mono">₹344.00</div>
+          <p class="text-[11px] text-amber-700 mt-1">Total Patient Owes</p>
+        </div>
+
+        <!-- Insurance Pays -->
+        <div class="bg-sky-50 rounded-xl p-5 border border-sky-200">
+          <span class="text-xs font-bold text-sky-800 uppercase tracking-wider">Insurance Pays</span>
+          <div id="res-insurance-paid" class="text-3xl font-black text-sky-600 mt-1 font-mono">₹456.00</div>
+          <p class="text-[11px] text-sky-700 mt-1">Plan Coverage Share</p>
+        </div>
+
+        <!-- Savings -->
+        <div class="bg-emerald-50 rounded-xl p-5 border border-emerald-200">
+          <span class="text-xs font-bold text-emerald-800 uppercase tracking-wider">Total Savings</span>
+          <div id="res-savings-total" class="text-3xl font-black text-emerald-600 mt-1 font-mono">₹656.00</div>
+          <p class="text-[11px] text-emerald-700 mt-1" id="res-savings-pct">65.6% off Billed</p>
+        </div>
+
+      </div>
+
+      <!-- Cost Split Visual Bar -->
+      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-3">
+        <div class="flex justify-between text-xs font-bold text-slate-700">
+          <span>Cost Breakdown</span>
+          <span id="res-billed-header" class="font-mono">Total Billed: ₹1,000.00</span>
+        </div>
+
+        <div class="h-4 w-full bg-slate-100 rounded-lg overflow-hidden flex">
+          <div id="bar-discount" class="bg-emerald-500 h-full transition-all" style="width: 20%"></div>
+          <div id="bar-insurance" class="bg-sky-500 h-full transition-all" style="width: 45.6%"></div>
+          <div id="bar-patient" class="bg-amber-500 h-full transition-all" style="width: 34.4%"></div>
+        </div>
+
+        <div class="grid grid-cols-3 text-center text-xs pt-1">
+          <span class="text-emerald-700 font-medium">Discount (<span id="pct-discount">20%</span>)</span>
+          <span class="text-sky-700 font-medium">Insurance (<span id="pct-insurance">45.6%</span>)</span>
+          <span class="text-amber-700 font-medium">You Pay (<span id="pct-patient">34.4%</span>)</span>
+        </div>
+      </div>
+
+      <!-- Detailed Breakdown Table -->
+      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-3">
+        <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Simple Breakdown Table</h3>
+        
+        <div class="divide-y divide-slate-100 text-xs sm:text-sm">
+          
+          <div class="py-2.5 flex justify-between">
+            <span class="text-slate-600">Original Billed Amount</span>
+            <span id="tbl-billed" class="font-mono font-bold">₹1,000.00</span>
+          </div>
+
+          <div class="py-2.5 flex justify-between text-emerald-700">
+            <span>Network Discount</span>
+            <span id="tbl-discount" class="font-mono font-bold">-₹200.00</span>
+          </div>
+
+          <div class="py-2.5 flex justify-between font-semibold">
+            <span class="text-slate-800">Allowed Covered Amount</span>
+            <span id="tbl-allowed" class="font-mono font-bold text-slate-900">₹800.00</span>
+          </div>
+
+          <div class="py-2.5 flex justify-between text-slate-600">
+            <span>Copay Paid</span>
+            <span id="tbl-copay" class="font-mono font-bold">₹30.00</span>
+          </div>
+
+          <div class="py-2.5 flex justify-between text-slate-600">
+            <span>Deductible Applied</span>
+            <span id="tbl-deductible" class="font-mono font-bold">₹200.00</span>
+          </div>
+
+          <div class="py-2.5 flex justify-between text-slate-600">
+            <span>Co-insurance Share</span>
+            <span id="tbl-coinsurance" class="font-mono font-bold">₹114.00</span>
+          </div>
+
+          <div class="py-3 flex justify-between bg-amber-50 px-3 rounded-lg font-bold text-amber-900">
+            <span>Total You Pay</span>
+            <span id="tbl-patient-total" class="font-mono text-base text-amber-700">₹344.00</span>
+          </div>
+
+          <div class="py-3 flex justify-between bg-sky-50 px-3 rounded-lg font-bold text-sky-900">
+            <span>Total Insurance Pays</span>
+            <span id="tbl-insurance-paid" class="font-mono text-base text-sky-700">₹456.00</span>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="bg-white border-t border-slate-200 py-3 text-center text-xs text-slate-400">
+    Medical Bill Calculator &bull; Indian Rupee (₹) Realtime Math
+  </footer>
+
+  <!-- SCRIPT -->
+  <script>
+    const PRESETS = {
+      standard: { billed: 1000, discount: 20, copay: 30, deductible: 200, coinsurance: 20 },
+      preventive: { billed: 250, discount: 40, copay: 0, deductible: 0, coinsurance: 0 },
+      er: { billed: 3500, discount: 25, copay: 150, deductible: 500, coinsurance: 20 },
+      surgery: { billed: 18000, discount: 35, copay: 0, deductible: 2500, coinsurance: 30 }
+    };
+
+    function fmt(n) {
+      return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 }).format(n || 0);
+    }
+
+    function calculate() {
+      const billed = Math.max(0, parseFloat(document.getElementById('billed').value) || 0);
+      const discountPct = Math.min(100, Math.max(0, parseFloat(document.getElementById('discount').value) || 0));
+      const copay = Math.max(0, parseFloat(document.getElementById('copay').value) || 0);
+      const ded = Math.max(0, parseFloat(document.getElementById('deductible').value) || 0);
+      const coinsPct = Math.min(100, Math.max(0, parseFloat(document.getElementById('coinsurance').value) || 0));
+
+      // Labels
+      document.getElementById('lbl-billed').innerText = fmt(billed);
+      document.getElementById('lbl-discount').innerText = `${discountPct}%`;
+      document.getElementById('lbl-copay').innerText = fmt(copay);
+      document.getElementById('lbl-deductible').innerText = fmt(ded);
+      document.getElementById('lbl-coinsurance').innerText = `${coinsPct}%`;
+
+      // Math Rules 1-8
+      const discountAmt = billed * (discountPct / 100);
+      const allowed = Math.max(0, billed - discountAmt);
+      const base = Math.max(0, allowed - copay);
+      const dedApplied = Math.min(base, ded);
+      const subjectCoins = Math.max(0, base - dedApplied);
+      const coinsShare = subjectCoins * (coinsPct / 100);
+      const patientTotal = copay + dedApplied + coinsShare;
+      const insurancePaid = Math.max(0, allowed - patientTotal);
+      const savings = discountAmt + insurancePaid;
+      const savingsPct = billed > 0 ? (savings / billed) * 100 : 0;
+
+      // Update Highlights
+      document.getElementById('res-patient-total').innerText = fmt(patientTotal);
+      document.getElementById('res-insurance-paid').innerText = fmt(insurancePaid);
+      document.getElementById('res-savings-total').innerText = fmt(savings);
+      document.getElementById('res-savings-pct').innerText = `${savingsPct.toFixed(1)}% off Billed`;
+
+      // Bar
+      document.getElementById('res-billed-header').innerText = `Total Billed: ${fmt(billed)}`;
+      const dPct = billed > 0 ? (discountAmt / billed) * 100 : 0;
+      const iPct = billed > 0 ? (insurancePaid / billed) * 100 : 0;
+      const pPct = billed > 0 ? (patientTotal / billed) * 100 : 0;
+
+      document.getElementById('bar-discount').style.width = `${dPct}%`;
+      document.getElementById('bar-insurance').style.width = `${iPct}%`;
+      document.getElementById('bar-patient').style.width = `${pPct}%`;
+
+      document.getElementById('pct-discount').innerText = `${dPct.toFixed(1)}%`;
+      document.getElementById('pct-insurance').innerText = `${iPct.toFixed(1)}%`;
+      document.getElementById('pct-patient').innerText = `${pPct.toFixed(1)}%`;
+
+      // Table
+      document.getElementById('tbl-billed').innerText = fmt(billed);
+      document.getElementById('tbl-discount').innerText = `-${fmt(discountAmt)}`;
+      document.getElementById('tbl-allowed').innerText = fmt(allowed);
+      document.getElementById('tbl-copay').innerText = fmt(copay);
+      document.getElementById('tbl-deductible').innerText = fmt(dedApplied);
+      document.getElementById('tbl-coinsurance').innerText = fmt(coinsShare);
+      document.getElementById('tbl-patient-total').innerText = fmt(patientTotal);
+      document.getElementById('tbl-insurance-paid').innerText = fmt(insurancePaid);
+    }
+
+    function loadPreset(key) {
+      const p = PRESETS[key];
+      if (!p) return;
+      document.getElementById('billed').value = p.billed;
+      document.getElementById('discount').value = p.discount;
+      document.getElementById('copay').value = p.copay;
+      document.getElementById('deductible').value = p.deductible;
+      document.getElementById('coinsurance').value = p.coinsurance;
+      calculate();
+    }
+
+    function resetDefaults() {
+      loadPreset('standard');
+    }
+
+    // Init
+    calculate();
+  </script>
+</body>
+</html>
